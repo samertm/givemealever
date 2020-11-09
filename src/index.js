@@ -15,14 +15,78 @@ app.loader
   .add("assets/bunny.png")
   .load(setup);
 
+  var circle_verts = [];
+  var colors = [];
+  const NUM_VERTS = 64;
+  for (var i = 0; i < NUM_VERTS; ++i ) {
+    let percent_of_circle = i / NUM_VERTS;
+    let y = Math.sin(percent_of_circle * Math.PI * 2) * 100;
+    let x = Math.cos(percent_of_circle * Math.PI * 2) * 100;
+    console.log(x, y);
+    circle_verts.push(x);
+    circle_verts.push(y);
+    colors.push(1 * (i / NUM_VERTS));
+    colors.push(0);
+    colors.push(1 - 1 * (i / NUM_VERTS));
+  }
+  circle_verts.reverse();
+
+  console.assert(colors.length / 3 == circle_verts.length / 2 && circle_verts.length / 2 == NUM_VERTS);
+
+ const geometry = new PIXI.Geometry()
+  .addAttribute('aVertexPosition', // the attribute name
+  circle_verts, 2) // x y
+
+  .addAttribute('aColor', // the attribute name
+  colors, 3); // r g b
+
+      const shader = PIXI.Shader.from(`
+
+      precision mediump float;
+      attribute vec2 aVertexPosition;
+      attribute vec3 aColor;
+  
+      uniform mat3 translationMatrix;
+      uniform mat3 projectionMatrix;
+  
+      varying vec3 vColor;
+  
+      void main() {
+  
+          vColor = aColor;
+          gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+  
+      }`,
+  
+  `precision mediump float;
+  
+      varying vec3 vColor;
+  
+      void main() {
+          gl_FragColor = vec4(vColor, 1.0);
+      }
+  
+  `);
+  
+
+
+
 function setup() {
   console.log(app.loader.resources);
   const bunny = new PIXI.Sprite(app.loader.resources["assets/bunny.png"].texture);
   app.stage.addChild(bunny);
 
+const triangle = new PIXI.Mesh(geometry, shader, PIXI.State.for2d, PIXI.DRAW_MODES.TRIANGLE_FAN);
+
+triangle.position.set(100, 200);
+triangle.scale.set(1);
+
+app.stage.addChild(triangle);
+
   app.ticker.add((delta) => {
     console.log(delta);
     bunny.x += 1 + delta;
+    triangle.rotation += 0.01;
   });
 }
 
