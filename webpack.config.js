@@ -3,6 +3,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const { SourceMapDevToolPlugin } = require("webpack");
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = {
   entry: './src/index.js',
@@ -19,6 +20,9 @@ module.exports = {
     }),
     new SourceMapDevToolPlugin({
       filename: "[file].map",
+    }),
+    new ESLintPlugin({
+      context: path.join(__dirname, 'src'),
     }),
   ],
   module: {
