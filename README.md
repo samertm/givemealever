@@ -19,3 +19,9 @@ To build files for production, run:
 ```
 make build
 ```
+
+To lint, run:
+
+```
+make lint
+```
