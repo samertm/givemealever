@@ -21,7 +21,6 @@ function setup() {
   app.stage.addChild(bunny);
 
   app.ticker.add((delta) => {
-    console.log(delta);
     bunny.x += 1 + delta;
   });
 }

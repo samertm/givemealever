@@ -4,15 +4,18 @@ A game written in javascript about levers.
 
 # Build
 
-Build the assets in one shell:
-```
-npm install
-make build
-```
+To run the webpack dev server, which builds all the files and serves
+them from memory, run:
 
-In another shell, run the webserver:
 ```
 make run
 ```
 
-Then navigate to localhost:8000 in your browser.
+Then navigate to localhost:8000. The build will be recompiled and your
+browser will refresh whenever you modify a source file.
+
+To build files for production, run:
+
+```
+make build
+```
