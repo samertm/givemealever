@@ -66,7 +66,7 @@ class Sun {
       .setDensity(1000.0);
     this.collider = window.RAPIER_WORLD.createCollider(this.colliderDesc, this.rigidBody.handle);
     // TODO: un negate everything lmao
-    this.gravity = -900.8;
+    this.gravity = -9000.8;
     app.stage.addChild(this.sun);
   }
 
@@ -77,12 +77,31 @@ class Sun {
   apply_gravity() {
     const sun_pos = this.position();
     for (const gravity_obj of window.has_gravity) {
-      const ray = new window.RAPIER.Ray(gravity_obj.position(), sun_pos);
-      const magnitude = Math.sqrt((ray.dir.x * ray.dir.x) + (ray.dir.y * ray.dir.y));
-      const force_x = ray.dir.x / magnitude;
-      const force_y = ray.dir.y / magnitude;
-      const force = new window.RAPIER.Vector2(this.gravity * force_x, this.gravity * force_y);
-      console.log(force, ray, ray.dir);
+      const obj_pos = gravity_obj.position();
+
+
+      const dist_x = Math.abs(obj_pos.x - sun_pos.x);
+      const dist_y = Math.abs(obj_pos.y - sun_pos.y);
+      const dist_magnitude_squared = (dist_x * dist_x) + (dist_y * dist_y);
+      const dist_mag_x = 1 / (dist_x * dist_x);
+      const dist_mag_y = 1 / (dist_y * dist_y);
+
+      const magnitude = Math.sqrt(dist_magnitude_squared);
+
+      const x_dir = dist_x < 0 ? -1 : 1;
+      const y_dir = dist_x < 0 ? -1 : 1;
+
+      const direction_to_sun_x = dist_x / magnitude;
+      const direction_to_sun_y = dist_y / magnitude;
+      console.log(direction_to_sun_x, direction_to_sun_y);
+
+      //const magnitude = Math.sqrt((ray.dir.x * ray.dir.x) + (ray.dir.y * ray.dir.y));
+      //console.log(magnitude, dist_magnitude, ray.dir);
+      //const force_x = ray.dir.x / dist_magnitude * mag_mult;
+      //const force_y = ray.dir.y / dist_magnitude * mag_mult;
+      const force = new window.RAPIER.Vector2(direction_to_sun_x * this.gravity * x_dir,//* dist_mag_x,
+                                              direction_to_sun_y * this.gravity * y_dir); //* dist_mag_y);
+      console.log("force", force);
       gravity_obj.receive_gravity(force);
     }
   }
@@ -94,7 +113,7 @@ function setup() {
   
   console.log(window.has_gravity);
   const bunny1 = new Bunny(200,-600);
-  const bunny2 = new Bunny(600,-200);
+  const bunny2 = new Bunny(500,-250);
   console.log(window.has_gravity);
   const sun = new Sun();
 
