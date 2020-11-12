@@ -34,6 +34,8 @@ class Bunny {
     this.colliderDesc = window.RAPIER.ColliderDesc.cuboid(12.5, 12.5)
       .setDensity(2.0);
     this.collider = window.RAPIER_WORLD.createCollider(this.colliderDesc, this.rigidBody.handle);
+    let impulse = new window.RAPIER.Vector2(15000, 15000);
+    this.rigidBody.applyImpulse(impulse, true);
     app.stage.addChild(this.bunny);
     window.has_gravity.push(this);
   }
@@ -41,8 +43,7 @@ class Bunny {
   physics_update() {
     let bunny_position = this.rigidBody.translation();
     this.bunny.x = bunny_position.x;
-    this.bunny.y = bunny_position.y * -1;
-    console.log(bunny_position);
+    this.bunny.y = bunny_position.y;
   }
 
   position() {
@@ -65,8 +66,7 @@ class Sun {
     this.colliderDesc = window.RAPIER.ColliderDesc.cuboid(12.5, 12.5)
       .setDensity(1000.0);
     this.collider = window.RAPIER_WORLD.createCollider(this.colliderDesc, this.rigidBody.handle);
-    // TODO: un negate everything lmao
-    this.gravity = -9000.8;
+    this.gravity = -90000000.8;
     app.stage.addChild(this.sun);
   }
 
@@ -79,29 +79,18 @@ class Sun {
     for (const gravity_obj of window.has_gravity) {
       const obj_pos = gravity_obj.position();
 
-
-      const dist_x = Math.abs(obj_pos.x - sun_pos.x);
-      const dist_y = Math.abs(obj_pos.y - sun_pos.y);
+      const dist_x = obj_pos.x - sun_pos.x;
+      const dist_y = obj_pos.y - sun_pos.y;
       const dist_magnitude_squared = (dist_x * dist_x) + (dist_y * dist_y);
-      const dist_mag_x = 1 / (dist_x * dist_x);
-      const dist_mag_y = 1 / (dist_y * dist_y);
 
       const magnitude = Math.sqrt(dist_magnitude_squared);
-
-      const x_dir = dist_x < 0 ? -1 : 1;
-      const y_dir = dist_x < 0 ? -1 : 1;
+      const inv_mag = 1 / dist_magnitude_squared;
 
       const direction_to_sun_x = dist_x / magnitude;
       const direction_to_sun_y = dist_y / magnitude;
-      console.log(direction_to_sun_x, direction_to_sun_y);
 
-      //const magnitude = Math.sqrt((ray.dir.x * ray.dir.x) + (ray.dir.y * ray.dir.y));
-      //console.log(magnitude, dist_magnitude, ray.dir);
-      //const force_x = ray.dir.x / dist_magnitude * mag_mult;
-      //const force_y = ray.dir.y / dist_magnitude * mag_mult;
-      const force = new window.RAPIER.Vector2(direction_to_sun_x * this.gravity * x_dir,//* dist_mag_x,
-                                              direction_to_sun_y * this.gravity * y_dir); //* dist_mag_y);
-      console.log("force", force);
+      const force = new window.RAPIER.Vector2(direction_to_sun_x * this.gravity * inv_mag,
+                                              direction_to_sun_y * this.gravity * inv_mag);
       gravity_obj.receive_gravity(force);
     }
   }
@@ -112,8 +101,8 @@ function setup() {
   window.has_gravity = [];
   
   console.log(window.has_gravity);
-  const bunny1 = new Bunny(200,-600);
-  const bunny2 = new Bunny(500,-250);
+  const bunny1 = new Bunny(200,600);
+  const bunny2 = new Bunny(500,250);
   console.log(window.has_gravity);
   const sun = new Sun();
 
