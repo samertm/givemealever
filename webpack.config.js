@@ -25,6 +25,11 @@ module.exports = {
       context: path.join(__dirname, 'src'),
     }),
   ],
+  resolve: {
+    fallback: {
+      "assert": false, // :shrug:
+    },
+  },
   module: {
     rules: [
       {
@@ -42,5 +47,8 @@ module.exports = {
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
     port: 8000,
+  },
+  experiments: {
+    syncWebAssembly: true,
   },
 };
