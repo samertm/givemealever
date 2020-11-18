@@ -29,33 +29,66 @@ var stepSliderLabel = null;
 // can then insert into the DOM
 document.body.appendChild(app.view);
 
-class Texture {
+// TODO: Get by id instead.
+const canvas = document.getElementsByTagName("canvas")[0];
+
+// mousePos is created the first time the user moves their mouse over
+// the canvas.
+var mousePos;
+
+canvas.addEventListener('mousemove', function(evt) {
+  var rect = canvas.getBoundingClientRect();
+  if (!mousePos) {
+    mousePos = { x: 0, y: 0 };
+  }
+  mousePos.x = evt.clientX - rect.left;
+  mousePos.y = evt.clientY - rect.top;
+});
+
+class Sprite {
   constructor(assetPath) {
-    this.texture = new PIXI.Sprite(app.loader.resources[assetPath].texture);
-    app.stage.addChild(this.texture);
+    this.sprite = new PIXI.Sprite(app.loader.resources[assetPath].texture);
+    app.stage.addChild(this.sprite);
   }
 
   delete() {
-    app.stage.removeChild(this.texture);
-    this.texture = null;
+    app.stage.removeChild(this.sprite);
+    this.sprite = null;
   }
 }
 
 class Player {
   constructor() {
-    this.player = new Texture("assets/player.png");
-    this.stick = new Texture("assets/player-stick.png");
+    this._player = new Sprite("assets/player.png");
+    this._stick = new Sprite("assets/player-stick.png");
+    this._stick_y_offset = 2;
+    this._player.sprite.x = 100;
+    this._player.sprite.y = 100;
+    this.setStick();
+  }
+
+  setStick() {
+    this._stick.sprite.x = this._player.sprite.x + this._player.sprite.width / 2;
+    this._stick.sprite.y = this._player.sprite.y + this._stick_y_offset;
+  }
+
+  rotateStickTo(x, y) {
+    const rads = Math.atan2(
+      y - this._stick.sprite.y,
+      x - this._stick.sprite.x);
+
+    this._stick.sprite.rotation = rads;
   }
 
   delete() {
-    this.player.delete();
-    this.stick.delete();
+    this._player.delete();
+    this._stick.delete();
   }
 }
 
 class Bunny {
   constructor(x, y) {
-    this.bunny = new Texture("assets/bunny.png");
+    this.bunny = new Sprite("assets/bunny.png");
     this.rigidBodyDesc = new window.RAPIER.RigidBodyDesc(window.RAPIER.BodyStatus.Dynamic)
       .setTranslation(new window.RAPIER.Vector2(x, y));
     this.rigidBody = window.RAPIER_WORLD.createRigidBody(this.rigidBodyDesc);
@@ -73,8 +106,8 @@ class Bunny {
 
   physics_update() {
     let bunny_position = this.rigidBody.translation();
-    this.bunny.texture.x = bunny_position.x;
-    this.bunny.texture.y = bunny_position.y;
+    this.bunny.sprite.x = bunny_position.x;
+    this.bunny.sprite.y = bunny_position.y;
   }
 
   position() {
@@ -128,13 +161,13 @@ class Bunny {
 
 class Sun {
   constructor() {
-    this.sun = new Texture("assets/bunny.png");
+    this.sun = new Sprite("assets/bunny.png");
     this.rigidBodyDesc = new window.RAPIER.RigidBodyDesc(window.RAPIER.BodyStatus.Static)
       .setTranslation(new window.RAPIER.Vector2(height / 2, width / 2));
 
     // Position sun in the center of the screen
-    this.sun.texture.y = height / 2;
-    this.sun.texture.x = width / 2;
+    this.sun.sprite.y = height / 2;
+    this.sun.sprite.x = width / 2;
 
     // The sun is a Rapier rigid body
     this.rigidBody = window.RAPIER_WORLD.createRigidBody(this.rigidBodyDesc);
@@ -191,6 +224,13 @@ class Sun {
     // TODO: REMOVE FROM component arrays if/when in them!!
     this.sun.delete();
   }
+}
+
+function rotate_stick(player) {
+  if (!mousePos) {
+    return;
+  }
+  player.rotateStickTo(mousePos.x, mousePos.y);
 }
 
 // Per-step physics logic adjusted by delta
@@ -261,7 +301,6 @@ function setupUserControls() {
 }
 
 function setup() {
-  console.log(app.loader.resources);
   setup_debug_system();
   window.has_gravity = [];
   window.gravity_source = [];
@@ -281,6 +320,7 @@ function setup() {
 
   // Main ticker
   app.ticker.add((delta) => {
+    rotate_stick(player);
     run_physics(delta);
     if (window.DEBUG_DISPLAY_COLLISION) {
       draw_debug_collision();
