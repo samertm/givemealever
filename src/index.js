@@ -1,30 +1,6 @@
 "use strict";
 
-// https://www.w3schools.com/howto/howto_html_include.asp
-function includeHTML(name) {
-  var elmnt = document.createElement("p");
-  var file, xhttp;
-  /*loop through a collection of all HTML elements:*/
-    /*search for elements with a certain atrribute:*/
-    file = name;
-    if (file) {
-      /*make an HTTP request using the attribute value as the file name:*/
-      xhttp = new XMLHttpRequest();
-      xhttp.onreadystatechange = function() {
-          elmnt.innerHTML = this.responseText;
-      }      
-      xhttp.open("GET", file, true);
-      xhttp.send();
-      /*exit the function:*/
-        document.body.appendChild(elmnt);
-      return;
-    }
-}
-
-includeHTML("assets/controls.html");
-
 import * as PIXI from 'pixi.js';
-import { strict } from 'assert';
 
 import('@dimforge/rapier2d').then(RAPIER => {
   window.RAPIER = RAPIER;
@@ -45,19 +21,9 @@ const app = new PIXI.Application({width: width, height: height, antialias: true}
 var stepSliderControl = null;
 var stepSliderLabel = null;
 
-
-
 // The application will create a canvas element for you that you
 // can then insert into the DOM
 document.body.appendChild(app.view);
-
-//var slider = document.getElementById("myRange");
-//var output = document.getElementById("demo");
-//output.innerHTML = slider.value;
-
-//slider.oninput = function() {
-//  output.innerHTML = this.value;
-//}
 
 class Bunny {
   constructor(x, y) {
@@ -275,7 +241,7 @@ function setup() {
   window.has_gravity = [];
   window.gravity_source = [];
   window.has_collision = [];
-  
+
   setupUserControls();
   const bunny1 = new Bunny(200,600);
   const bunny2 = new Bunny(500,250);

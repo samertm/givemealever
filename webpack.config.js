@@ -12,6 +12,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: 'Pixi.js Demo',
       cache: false,
+      template: './src/index.html',
     }),
     new CopyPlugin({
       patterns: [
