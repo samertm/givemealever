@@ -8,8 +8,12 @@ import('@dimforge/rapier2d').then(RAPIER => {
   window.RAPIER_WORLD = new RAPIER.World(window.RAPIER_GRAVITY);
 
   app.loader
-   .add("assets/bunny.png")
-   .load(setup);
+    .add([
+      "assets/bunny.png",
+      "assets/player.png",
+      "assets/player-stick.png",
+    ])
+    .load(setup);
 })
 
 // The application will create a renderer using WebGL, if possible,
@@ -25,9 +29,33 @@ var stepSliderLabel = null;
 // can then insert into the DOM
 document.body.appendChild(app.view);
 
+class Texture {
+  constructor(assetPath) {
+    this.texture = new PIXI.Sprite(app.loader.resources[assetPath].texture);
+    app.stage.addChild(this.texture);
+  }
+
+  delete() {
+    app.stage.removeChild(this.texture);
+    this.texture = null;
+  }
+}
+
+class Player {
+  constructor() {
+    this.player = new Texture("assets/player.png");
+    this.stick = new Texture("assets/player-stick.png");
+  }
+
+  delete() {
+    this.player.delete();
+    this.stick.delete();
+  }
+}
+
 class Bunny {
   constructor(x, y) {
-    this.bunny = new PIXI.Sprite(app.loader.resources["assets/bunny.png"].texture);
+    this.bunny = new Texture("assets/bunny.png");
     this.rigidBodyDesc = new window.RAPIER.RigidBodyDesc(window.RAPIER.BodyStatus.Dynamic)
       .setTranslation(new window.RAPIER.Vector2(x, y));
     this.rigidBody = window.RAPIER_WORLD.createRigidBody(this.rigidBodyDesc);
@@ -36,7 +64,6 @@ class Bunny {
     this.collider = window.RAPIER_WORLD.createCollider(this.colliderDesc, this.rigidBody.handle);
     let impulse = new window.RAPIER.Vector2(35000, 17000);
     this.rigidBody.applyImpulse(impulse, true);
-    app.stage.addChild(this.bunny);
     window.has_gravity.push(this);
     // bunnies are not generally a source of gravity, feel free to turn it on if you want to experiment though
     //window.gravity_source.push(this);
@@ -46,8 +73,8 @@ class Bunny {
 
   physics_update() {
     let bunny_position = this.rigidBody.translation();
-    this.bunny.x = bunny_position.x;
-    this.bunny.y = bunny_position.y;
+    this.bunny.texture.x = bunny_position.x;
+    this.bunny.texture.y = bunny_position.y;
   }
 
   position() {
@@ -87,27 +114,27 @@ class Bunny {
     }
   }
   delete() {
-     window.RAPIER_WORLD.removeCollider(this.collider);
-     this.collider = null;
-     window.RAPIER_WORLD.removeRigidBody(this.rigidBody);
-     this.rigidBody = null;
-     this.rigidBodyDesc = null;
-     this.colliderDesc = null;
-     // TODO: REMOVE FROM `has_gravity` and other component arrays!!
-     this.stage.removeChild(this.bunny);
-     this.bunny = null;
+    window.RAPIER_WORLD.removeCollider(this.collider);
+    this.collider = null;
+    window.RAPIER_WORLD.removeRigidBody(this.rigidBody);
+    this.rigidBody = null;
+    this.rigidBodyDesc = null;
+    this.colliderDesc = null;
+    // TODO: REMOVE FROM `has_gravity` and other component arrays!!
+    this.bunny.delete();
+    this.bunny = null;
   }
 }
 
 class Sun {
   constructor() {
-    this.sun = new PIXI.Sprite(app.loader.resources["assets/bunny.png"].texture);
+    this.sun = new Texture("assets/bunny.png");
     this.rigidBodyDesc = new window.RAPIER.RigidBodyDesc(window.RAPIER.BodyStatus.Static)
       .setTranslation(new window.RAPIER.Vector2(height / 2, width / 2));
 
     // Position sun in the center of the screen
-    this.sun.x = height / 2;
-    this.sun.y = width / 2;
+    this.sun.texture.y = height / 2;
+    this.sun.texture.x = width / 2;
 
     // The sun is a Rapier rigid body
     this.rigidBody = window.RAPIER_WORLD.createRigidBody(this.rigidBodyDesc);
@@ -118,7 +145,6 @@ class Sun {
         .setDensity(1000.0);
     this.collider = window.RAPIER_WORLD.createCollider(this.colliderDesc, this.rigidBody.handle);
     this.gravity = -590000000.8;
-    app.stage.addChild(this.sun);
     window.gravity_source.push(this);
     window.has_collision.push(this);
   }
@@ -156,15 +182,14 @@ class Sun {
   }
 
   delete() {
-     window.RAPIER_WORLD.removeCollider(this.collider);
-     this.collider = null;
-     window.RAPIER_WORLD.removeRigidBody(this.rigidBody);
-     this.rigidBody = null;
-     this.rigidBodyDesc = null;
-     this.colliderDesc = null;
-     // TODO: REMOVE FROM component arrays if/when in them!!
-     this.stage.removeChild(this.sun);
-     this.sun = null;
+    window.RAPIER_WORLD.removeCollider(this.collider);
+    this.collider = null;
+    window.RAPIER_WORLD.removeRigidBody(this.rigidBody);
+    this.rigidBody = null;
+    this.rigidBodyDesc = null;
+    this.colliderDesc = null;
+    // TODO: REMOVE FROM component arrays if/when in them!!
+    this.sun.delete();
   }
 }
 
@@ -251,6 +276,8 @@ function setup() {
 
   // Create sun at the center of the screen
   const sun = new Sun();
+
+  const player = new Player();
 
   // Main ticker
   app.ticker.add((delta) => {
